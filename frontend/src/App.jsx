@@ -65,6 +65,8 @@ const valueProps = [
 
 function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -88,6 +90,12 @@ function App() {
       const data = await response.json();
 
       if (!data.success) {
+        if (data.message?.toLowerCase().includes("does not exist")) {
+          setAuthMode("register");
+          setMessage("No account found. Create one to continue.");
+          return;
+        }
+
         setMessage(data.message || "Login failed");
         return;
       }
@@ -104,10 +112,50 @@ function App() {
     }
   };
 
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    setMessage("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        setMessage(data.message || "Registration failed");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      setToken(data.token);
+      setMessage("Account created. You are logged in.");
+      setName("");
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      setMessage("Could not connect to the backend");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken("");
     setMessage("Logged out");
+  };
+
+  const openAuth = (mode = "login") => {
+    setAuthMode(mode);
+    setMessage("");
+    setIsLoginOpen(true);
   };
 
   return (
@@ -131,7 +179,7 @@ function App() {
           <button type="button" aria-label="Search">
             <span aria-hidden="true">⌕</span>
           </button>
-          <button type="button" aria-label="Account" onClick={() => setIsLoginOpen(true)}>
+          <button type="button" aria-label="Account" onClick={() => openAuth("login")}>
             <span aria-hidden="true">♙</span>
           </button>
           <button className="cart-button" type="button" aria-label="Cart with 2 items">
@@ -253,7 +301,7 @@ function App() {
       </main>
 
       {isLoginOpen && (
-        <div className="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <div className="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
           <section className="auth-panel">
             <button
               className="close-button"
@@ -266,7 +314,7 @@ function App() {
 
             <div>
               <p className="eyebrow">South Asian Thrift</p>
-              <h2 id="login-title">Login</h2>
+              <h2 id="auth-title">{authMode === "login" ? "Login" : "Create Account"}</h2>
             </div>
 
             {token ? (
@@ -277,7 +325,23 @@ function App() {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleLogin} className="login-form">
+              <form
+                onSubmit={authMode === "login" ? handleLogin : handleRegister}
+                className="login-form"
+              >
+                {authMode === "register" && (
+                  <label>
+                    Name
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      placeholder="Your name"
+                      required
+                    />
+                  </label>
+                )}
+
                 <label>
                   Email
                   <input
@@ -301,8 +365,27 @@ function App() {
                 </label>
 
                 <button type="submit" disabled={isLoading}>
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading
+                    ? authMode === "login"
+                      ? "Logging in..."
+                      : "Creating account..."
+                    : authMode === "login"
+                      ? "Login"
+                      : "Create Account"}
                 </button>
+
+                <p className="auth-switch">
+                  {authMode === "login" ? "New here?" : "Already have an account?"}{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === "login" ? "register" : "login");
+                      setMessage("");
+                    }}
+                  >
+                    {authMode === "login" ? "Create an account" : "Login"}
+                  </button>
+                </p>
               </form>
             )}
 
