@@ -1,5 +1,14 @@
 import React, { useState } from "react";
 
+import img1 from "./assets/img1.jpeg";
+import img2 from "./assets/img2.jpeg";
+import img3 from "./assets/img3.jpeg";
+import img4 from "./assets/img4.jpeg";
+import img5 from "./assets/img5.jpeg";
+import img6 from "./assets/img6.jpeg";
+import img7 from "./assets/img7.jpeg";
+import img8 from "./assets/img8.jpeg";
+import { CartDrawer } from "./modules/cart/index.js";
 import { ProductManager } from "./modules/products/index.js";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
@@ -7,54 +16,54 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const categories = [
   {
     name: "Lehenga",
-    image: "https://source.unsplash.com/240x240/?lehenga,indian-fashion",
+    image: img8,
   },
   {
     name: "Saree",
-    image: "https://source.unsplash.com/240x240/?saree",
+    image: img3,
   },
   {
     name: "Kurti",
-    image: "https://source.unsplash.com/240x240/?kurti,indian-dress",
+    image: img5,
   },
   {
     name: "Anarkali",
-    image: "https://source.unsplash.com/240x240/?anarkali,dress",
+    image: img7,
   },
   {
     name: "Dupatta",
-    image: "https://source.unsplash.com/240x240/?dupatta,shawl",
+    image: img6,
   },
   {
     name: "Accessories",
-    image: "https://source.unsplash.com/240x240/?embroidered-bag,indian-accessories",
+    image: img4,
   },
   {
     name: "Jewelry",
-    image: "https://source.unsplash.com/240x240/?south-asian,jewelry",
+    image: img1,
   },
 ];
 
 const favorites = [
   {
-    name: "Emerald Embroidered Kurti",
+    name: "Plum Embroidered Lehenga",
     price: "$38",
-    image: "https://source.unsplash.com/520x680/?green,kurti,embroidery",
+    image: img1,
   },
   {
-    name: "Mustard Anarkali Dress",
+    name: "Aqua Mirrorwork Lehenga",
     price: "$64",
-    image: "https://source.unsplash.com/520x680/?yellow,anarkali,dress",
+    image: img2,
   },
   {
-    name: "Gold Trim Lehenga Set",
+    name: "Coral Festive Set",
     price: "$92",
-    image: "https://source.unsplash.com/520x680/?lehenga,gold,indian-fashion",
+    image: img4,
   },
   {
-    name: "Coral Festive Suit",
+    name: "Yellow Embroidered Set",
     price: "$48",
-    image: "https://source.unsplash.com/520x680/?salwar,suit,indian-fashion",
+    image: img5,
   },
 ];
 
@@ -74,6 +83,9 @@ function App() {
   const [message, setMessage] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartRefreshKey, setCartRefreshKey] = useState(0);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -104,6 +116,7 @@ function App() {
 
       localStorage.setItem("token", data.token);
       setToken(data.token);
+      setCartRefreshKey((current) => current + 1);
       setMessage("Login successful");
       setEmail("");
       setPassword("");
@@ -137,6 +150,7 @@ function App() {
 
       localStorage.setItem("token", data.token);
       setToken(data.token);
+      setCartRefreshKey((current) => current + 1);
       setMessage("Account created. You are logged in.");
       setName("");
       setEmail("");
@@ -151,6 +165,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken("");
+    setCartCount(0);
     setMessage("Logged out");
   };
 
@@ -185,9 +200,14 @@ function App() {
           <button type="button" aria-label="Account" onClick={() => openAuth("login")}>
             <span aria-hidden="true">♙</span>
           </button>
-          <button className="cart-button" type="button" aria-label="Cart with 2 items">
+          <button
+            className="cart-button"
+            type="button"
+            aria-label={`Cart with ${cartCount} items`}
+            onClick={() => setIsCartOpen(true)}
+          >
             <span aria-hidden="true">▱</span>
-            <strong>2</strong>
+            <strong>{cartCount}</strong>
           </button>
         </div>
       </header>
@@ -206,18 +226,18 @@ function App() {
           <div className="hero-collage" aria-label="Featured South Asian clothing">
             <img
               className="collage-img image-one"
-              src="https://source.unsplash.com/420x560/?green,lehenga"
-              alt="Green South Asian outfit on a hanger"
+              src={img6}
+              alt="Teal South Asian outfit on a hanger"
             />
             <img
               className="collage-img image-two"
-              src="https://source.unsplash.com/420x560/?yellow,indian-dress"
+              src={img5}
               alt="Yellow embroidered South Asian dress"
             />
             <img
               className="collage-img image-three"
-              src="https://source.unsplash.com/420x560/?purple,lehenga"
-              alt="Purple lehenga with gold detail"
+              src={img4}
+              alt="Coral lehenga with silver detail"
             />
             <div className="collection-badge">
               <span>Explore</span>
@@ -302,8 +322,27 @@ function App() {
           </div>
         </section>
 
-        <ProductManager />
+        <ProductManager
+          token={token}
+          onRequireLogin={() => openAuth("login")}
+          onCartChanged={(count) => {
+            setCartCount(count);
+            setCartRefreshKey((current) => current + 1);
+          }}
+        />
       </main>
+
+      <CartDrawer
+        isOpen={isCartOpen}
+        token={token}
+        refreshKey={cartRefreshKey}
+        onClose={() => setIsCartOpen(false)}
+        onRequireLogin={() => {
+          setIsCartOpen(false);
+          openAuth("login");
+        }}
+        onCartChanged={setCartCount}
+      />
 
       {isLoginOpen && (
         <div className="auth-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-title">
