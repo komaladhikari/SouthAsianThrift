@@ -4,6 +4,7 @@ import 'dotenv/config'
 import connectDB from "./src/shared/config/mongodb.js"
 import connectCloudinary from "./src/shared/config/cloudinary.js"
 import { authRouter } from "./src/modules/auth/index.js"
+import { productRouter } from "./src/modules/products/index.js"
 
 
 //app config
@@ -21,6 +22,7 @@ app.use(express.json())
 
 //api endpoints
 app.use("/api/auth", authRouter)
+app.use("/api/products", productRouter)
 
 app.get('/',(req,res)=>{
     res.send('API Working')
