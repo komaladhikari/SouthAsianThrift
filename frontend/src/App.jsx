@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { ProductManager } from "./modules/products/index.js";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const categories = [
@@ -172,6 +174,7 @@ function App() {
           <a href="#collections">Collections</a>
           <a href="#about">About</a>
           <a href="#sustainability">Sustainability</a>
+          <a href="#product-admin">Admin</a>
           <a href="#contact">Contact</a>
         </nav>
 
@@ -298,6 +301,8 @@ function App() {
             </article>
           </div>
         </section>
+
+        <ProductManager />
       </main>
 
       {isLoginOpen && (
