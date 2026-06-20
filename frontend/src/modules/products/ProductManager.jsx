@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 
+import fallbackProductImage from "../../assets/img1.jpeg";
 import {
   addProduct,
   listProducts,
   removeProduct,
 } from "./product.api.js";
+import { addToCart } from "../cart/index.js";
 
 const emptyProduct = {
   name: "",
@@ -34,7 +36,7 @@ const categories = [
 const sizes = ["XS", "S", "M", "L", "XL", "XXL", "Free Size", "One Size"];
 const conditions = ["New", "Like New", "Good", "Fair"];
 
-function ProductManager() {
+function ProductManager({ token, onRequireLogin, onCartChanged }) {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyProduct);
   const [status, setStatus] = useState("");
@@ -99,6 +101,23 @@ function ProductManager() {
       await removeProduct(productId);
       setProducts((current) => current.filter((product) => product._id !== productId));
       setStatus("Product removed successfully.");
+    } catch (error) {
+      setStatus(error.message);
+    }
+  };
+
+  const handleAddToCart = async (productId) => {
+    if (!token) {
+      onRequireLogin?.();
+      return;
+    }
+
+    setStatus("");
+
+    try {
+      const data = await addToCart({ token, productId, quantity: 1 });
+      onCartChanged?.(data.cart?.totalItems || 0);
+      setStatus("Product added to cart.");
     } catch (error) {
       setStatus(error.message);
     }
@@ -261,7 +280,7 @@ function ProductManager() {
               {products.map((product) => (
                 <article className="product-row" key={product._id}>
                   <img
-                    src={product.images?.[0]?.url || "https://placehold.co/120x120?text=Product"}
+                    src={product.images?.[0]?.url || fallbackProductImage}
                     alt={product.name}
                   />
                   <div>
@@ -271,9 +290,18 @@ function ProductManager() {
                     </p>
                     <strong>${product.price}</strong>
                   </div>
-                  <button type="button" onClick={() => handleRemove(product._id)}>
-                    Remove
-                  </button>
+                  <div className="product-row-actions">
+                    <button
+                      className="add-cart-button"
+                      type="button"
+                      onClick={() => handleAddToCart(product._id)}
+                    >
+                      Add to Cart
+                    </button>
+                    <button type="button" onClick={() => handleRemove(product._id)}>
+                      Remove
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
