@@ -656,7 +656,17 @@ img {
 }
 
 .product-row .add-cart-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
   background: var(--green-700);
+}
+
+.product-row .add-cart-button svg {
+  width: 21px;
+  height: 21px;
 }
 
 .cart-overlay {

@@ -36,6 +36,26 @@ const categories = [
 const sizes = ["XS", "S", "M", "L", "XL", "XXL", "Free Size", "One Size"];
 const conditions = ["New", "Like New", "Good", "Fair"];
 
+function CartIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="8" cy="21" r="1" />
+      <circle cx="19" cy="21" r="1" />
+      <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h8.8a2 2 0 0 0 1.96-1.6l1.2-6.45H5.12" />
+      <path d="M12 10h6" />
+      <path d="M15 7v6" />
+    </svg>
+  );
+}
+
 function ProductManager({ token, onRequireLogin, onCartChanged }) {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyProduct);
@@ -294,9 +314,11 @@ function ProductManager({ token, onRequireLogin, onCartChanged }) {
                     <button
                       className="add-cart-button"
                       type="button"
+                      aria-label={`Add ${product.name} to cart`}
+                      title="Add to cart"
                       onClick={() => handleAddToCart(product._id)}
                     >
-                      Add to Cart
+                      <CartIcon />
                     </button>
                     <button type="button" onClick={() => handleRemove(product._id)}>
                       Remove
